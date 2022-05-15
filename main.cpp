@@ -6,14 +6,14 @@
 
 
 using namespace std;
-// порождающая матрица kxn
+// TODO что такое порождающая матрица kxn
 vector<vector<int>> G = {
         {0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0},
         {0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0},
         {1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
         {1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0}
 };
-// невырожденная матрица kxk
+// TODO что такое невырожденная матрица kxk
 vector<vector<int>> S = {
         {1, 0, 0, 1},
         {0, 1, 0, 1},
@@ -74,7 +74,7 @@ vector<vector<int>> matrix_mul(vector<vector<int>> first, vector<vector<int>> se
     int countColumnsFirst = first[0].size();
     int countRowsSecond = second.size();
     if (countColumnsFirst != countRowsSecond) {
-        throw("invalid arguments");
+        throw ("invalid arguments");
     }
 
     int countRowsFirst = first.size();
@@ -198,20 +198,20 @@ double Determinant(vector<vector<int>> a, int n) {
         for (int j = i + 1; j < n; ++j)
             if (abs(a[j][i]) > abs(a[k][i]))
                 k = j;
-            if (abs(a[k][i]) < EPS) {
-                det = 0;
-                break;
-            }
-            swap(a[i], a[k]);
-            if (i != k)
-                det = -det;
-            det *= a[i][i];
-            for (int j = i + 1; j < n; ++j)
-                a[i][j] /= a[i][i];
-            for (int j = 0; j < n; ++j)
-                if (j != i && abs(a[j][i]) > EPS)
-                    for (int k = i + 1; k < n; ++k)
-                        a[j][k] -= a[i][k] * a[j][i];
+        if (abs(a[k][i]) < EPS) {
+            det = 0;
+            break;
+        }
+        swap(a[i], a[k]);
+        if (i != k)
+            det = -det;
+        det *= a[i][i];
+        for (int j = i + 1; j < n; ++j)
+            a[i][j] /= a[i][i];
+        for (int j = 0; j < n; ++j)
+            if (j != i && abs(a[j][i]) > EPS)
+                for (int k = i + 1; k < n; ++k)
+                    a[j][k] -= a[i][k] * a[j][i];
     }
     return det;
 }
@@ -242,10 +242,36 @@ vector<vector<int>> inverseMatrix2(vector<vector<int>> a) {
     return a;
 }
 
+vector<vector<vector<int>>> getBlock(const string &message, int k) {
+    vector<vector<vector<int>>> resultBlocks;
+    int count = 0;
+    vector<vector<int>> block;
+    vector<int> subBlock;
+    for (char c : message) {
+        if (c == '0') {
+            subBlock.push_back(0);
+            ++count;
+        } else if (c == '1') {
+            subBlock.push_back(1);
+            ++count;
+        }
+        if (count == k) {
+            block.push_back(subBlock);
+            subBlock.clear();
+            resultBlocks.push_back(block);
+            block.clear();
+            count = 0;
+            continue;
+        }
+    }
+    return resultBlocks;
+}
+
+
 int main(int argc, const char *argv[]) {
 
-    vector<vector<int>> matrix = gen_for_p(4);
-    for (const vector<int>& vector1 : matrix) {
+/*    vector<vector<int>> matrix = gen_for_p(4);
+    for (const vector<int> &vector1 : matrix) {
         for (int i : vector1) {
             cout << i;
         }
@@ -254,198 +280,213 @@ int main(int argc, const char *argv[]) {
 
     vector<vector<int>> resultMatrix = matrix_mul(S, G);
 
-    for (const vector<int>& vector1 : resultMatrix) {
+    for (const vector<int> &vector1 : resultMatrix) {
         for (int i : vector1) {
             cout << i;
         }
         cout << endl;
+    }*/
+    string message;
+
+    cout << "Введите последовательность : " << endl;
+    cin >> message;
+    vector<vector<vector<int>>> blocks = getBlock(message, 4);
+    for (const auto &matrix : blocks) {
+        cout << "{";
+        for (const auto &subMatrix : matrix) {
+            cout << "{";
+            for (auto count : subMatrix) {
+                cout << count;
+            }
+            cout << "}";
+        }
+        cout << "} ";
+    }
+    // k = 4;n = 12;t = 2;
+/*
+    vector<vector<int>> P = gen_for_p(12);
+    vector<vector<int>> SG = matrix_mul(S, G);
+    vector<vector<int>> SGP = matrix_mul(SG, P);
+    // m сообщение в виде двоичных символов
+    vector<vector<int>> m = {{1, 0, 1, 0}};
+    // генерирует случайный вектор z
+    vector<vector<int>> z = {{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    int t = 2; // вес Хемминга t
+    // вычислется шифротекст c=mG+z
+    vector<vector<int>> c = matrix_mul(m, SGP);
+    for (int i = 0; i < c.size(); ++i) {
+        for (int j = 0; j < c[i].size(); ++j)
+            c[i][j] = (c[i][j] + z[i][j]) % 2;
+    }
+    // вычисление обратной матрицы P
+    vector<vector<int>> P_ = {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    P_ = inverseMatrix(P);
+
+    vector<vector<int>> c_ = matrix_mul(c, P_);
+    vector<vector<int>> c2_ = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    for (int i = 0; i < c_.size(); i++) {
+        for (int j = 0; j < 12; j++) {
+            if (c_[i][j] == 0) {
+                c2_[i][j] = c_[i][j] + z[i][j];
+            } else {
+                c2_[i][j] = c_[i][j];
+            }
+        }
     }
 
+    vector<vector<int>> Gt = T2(G);
+    Gt = matrix_mul(c2_, Gt);
+    vector<vector<int>> S_ = {
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}};
+    S_ = inverseMatrix2(S);
+    // m=m`S^-1
+    vector<vector<int>> m_ = matrix_mul(Gt, S_);
 
-
-
-    /*    vector<vector<int>> P = gen_for_p(12);
-        vector<vector<int>> SG = matrix_mul(S, G);
-        vector<vector<int>> SGP = matrix_mul(SG, P);
-        // m сообщение в виде двоичных символов
-        vector<vector<int>> m = {{1, 0, 1, 0}};
-        // генерирует случайный вектор z
-        vector<vector<int>> z = {{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-        int t = 2; // вес Хемминга t
-    // вычислется шифротекст c=mG+z
-        vector<vector<int>> c = matrix_mul(m, SGP);
-        for (int i = 0; i < c.size(); ++i) {
-            for (int j = 0; j < c[i].size(); ++j)
-                c[i][j] = (c[i][j] + z[i][j]) % 2;
-        }
-        // вычисление обратной матрицы P
-        vector<vector<int>> P_ = {
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-        P_ = inverseMatrix(P);
-
-        vector<vector<int>> c_ = matrix_mul(c, P_);
-        vector<vector<int>> c2_ = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-        for (int i = 0; i < c_.size(); i++) {
-            for (int j = 0; j < 12; j++) {
-                if (c_[i][j] == 0) {
-                    c2_[i][j] = c_[i][j] + z[i][j];
-                } else {
-                    c2_[i][j] = c_[i][j];
+    do {
+        int i = 0;
+        printf("McEliece Cryptosystem\n\nSystem parameters: k=4, n=12, t=2\n\n1 Key generation\n2 Encryption\n3 Decryption\n4 Exit\n");
+        scanf_s("%d", &i);
+        switch (i) {
+            case 1: {
+                system("cls");
+                printf("Key generation process\n\n");
+                printf("Matrix G k*n:\n");
+                for (auto now : G) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
                 }
+                printf("\n");
+                printf("Matrix S k*k:\n");
+                for (auto now : S) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\n");
+                printf("Matrix P n*n:\n");
+                for (auto now : P) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\nMatrix SGP k*n:\n");
+                for (auto now : SGP) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\n(SGP,t) - public key\n((S,G,P) - private key\n\n\n");
+                getchar();
+                getchar();
+                system("cls");
+                break;
             }
-        }
 
-        vector<vector<int>> Gt = T2(G);
-        Gt = matrix_mul(c2_, Gt);
-        vector<vector<int>> S_ = {
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0}};
-        S_ = inverseMatrix2(S);
-        // m=m`S^-1
-        vector<vector<int>> m_ = matrix_mul(Gt, S_);
+            case 2: {
+                system("cls");
+                printf("Encryption process\n\n");
 
-        do {
-            int i = 0;
-            printf("McEliece Cryptosystem\n\nSystem parameters: k=4, n=12, t=2\n\n1 Key generation\n2 Encryption\n3 Decryption\n4 Exit\n");
-            scanf_s("%d", &i);
-            switch (i) {
-                case 1: {
-                    system("cls");
-                    printf("Key generation process\n\n");
-                    printf("Matrix G k*n:\n");
-                    for (auto now : G) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
+                printf("Message: ");
+                for (auto now : m) {
+                    for (auto t : now) {
+                        cout << t << " ";
                     }
-                    printf("\n");
-                    printf("Matrix S k*k:\n");
-                    for (auto now : S) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("\n");
-                    printf("Matrix P n*n:\n");
-                    for (auto now : P) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("\nMatrix SGP k*n:\n");
-                    for (auto now : SGP) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("\n(SGP,t) - public key\n((S,G,P) - private key\n\n\n");
-                    getchar();
-                    getchar();
-                    system("cls");
-                    break;
+                    cout << endl;
                 }
-
-                case 2: {
-                    system("cls");
-                    printf("Encryption process\n\n");
-
-                    printf("Message: ");
-                    for (auto now : m) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
+                printf("Binary error vector: ");
+                for (auto now : z) {
+                    for (auto t : now) {
+                        cout << t << " ";
                     }
-                    printf("Binary error vector: ");
-                    for (auto now : z) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("Encrypted message: ");
-                    for (auto now : c) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    getchar();
-                    getchar();
-                    system("cls");
-                    break;
+                    cout << endl;
                 }
-                case 3:
-                    system("cls");
-                    printf("Decryption process\n\n");
-                    printf("\nMatrix cP^-1: ");
-                    for (auto now : c_) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
+                printf("Encrypted message: ");
+                for (auto now : c) {
+                    for (auto t : now) {
+                        cout << t << " ";
                     }
-                    printf("\nMatrix mSG: ");
-                    for (auto now : c2_) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("\nMatrix mS: ");
-                    for (auto now : Gt) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    printf("\nDecrypted message m: ");
-                    for (auto now : m_) {
-                        for (auto t : now) {
-                            cout << t << " ";
-                        }
-                        cout << endl;
-                    }
-                    getchar();
-                    getchar();
-                    system("cls");
-                    break;
-
-                case 4:
-
-                    system("cls");
-                    printf("\nExit\n");
-                    getchar();
-                    getchar();
-                    return 0;
-
-                default:
-                    printf("\nError\n");
-                    getchar();
-                    getchar();
-                    system("cls");
-                    break;
+                    cout << endl;
+                }
+                getchar();
+                getchar();
+                system("cls");
+                break;
             }
-        } while (true);
+            case 3:
+                system("cls");
+                printf("Decryption process\n\n");
+                printf("\nMatrix cP^-1: ");
+                for (auto now : c_) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\nMatrix mSG: ");
+                for (auto now : c2_) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\nMatrix mS: ");
+                for (auto now : Gt) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                printf("\nDecrypted message m: ");
+                for (auto now : m_) {
+                    for (auto t : now) {
+                        cout << t << " ";
+                    }
+                    cout << endl;
+                }
+                getchar();
+                getchar();
+                system("cls");
+                break;
 
-        getchar();
-        getchar();
-        return 0;*/
+            case 4:
+
+                system("cls");
+                printf("\nExit\n");
+                getchar();
+                getchar();
+                return 0;
+
+            default:
+                printf("\nError\n");
+                getchar();
+                getchar();
+                system("cls");
+                break;
+        }
+    } while (true);
+*/
+
+    getchar();
+    getchar();
+    return 0;
 }
