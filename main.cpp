@@ -6,15 +6,13 @@
 
 
 using namespace std;
-// TODO что такое порождающая матрица kxn
-vector<vector<int>> G = {
+const vector<vector<int>> G = {
         {0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0},
         {0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0},
         {1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
         {1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0}
 };
-// TODO что такое невырожденная матрица kxk
-vector<vector<int>> S = {
+const vector<vector<int>> S = {
         {1, 0, 0, 1},
         {0, 1, 0, 1},
         {0, 1, 0, 0},
@@ -49,24 +47,6 @@ vector<vector<int>> gen_for_p(int n) {
     }
 
     return newMatrix;
-
-
-    /*    vector<int> mini_p;
-        int cnt = 0;
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n - 1; ++j) {
-                if (j == cnt)
-                    mini_p.push_back(1);
-                mini_p.push_back(0);
-            }
-            cnt++;
-            P_p.push_back(mini_p);
-            mini_p.clear();
-        }
-        P_p[11].push_back(1);
-        vector <vector<int>> new_matr = {P_p[0], P_p[2], P_p[8], P_p[5], P_p[4], P_p[1], P_p[3], P_p[11], P_p[7], P_p[9],
-                                         P_p[10], P_p[6]};
-        return new_matr;*/
 }
 
 // вычисляется матрица SGP
@@ -96,25 +76,6 @@ vector<vector<int>> matrix_mul(vector<vector<int>> first, vector<vector<int>> se
     }
 
     return result;
-    /*    int n1 = first.size(); // str
-        int m2 = second[0].size();
-        int n2 = second.size();
-        vector<int> tmp;
-        vector<vector<int>> res;
-        for (int j = 0; j < n1; ++j) {
-            for (int k = 0; k < m2; ++k) {
-                int cnt = 0;
-                int sum = 0;
-                while (cnt != n2) {
-                    sum += (first[j][cnt] * second[cnt][k]);
-                    cnt++;
-                }
-                tmp.push_back(sum % 2);
-            }
-            res.push_back(tmp);
-            tmp.clear();
-        }
-        return res;*/
 }
 
 vector<vector<int>> T(vector<vector<int>> matrix) {
@@ -242,11 +203,39 @@ vector<vector<int>> inverseMatrix2(vector<vector<int>> a) {
     return a;
 }
 
-vector<vector<vector<int>>> getBlock(const string &message, int k) {
+// не больше t единиц, кол-во элементов = n
+vector<vector<int>> getRandomZ(int t, int n) {
+    vector<int> randomZ;
+    int countOnes = 0; // количество единиц.
+    for (int i = 0; i < n; ++i) {
+        int r = rand() % 2;
+        if (r == 0) {
+            randomZ.push_back(0);
+        } else {
+            randomZ.push_back(1);
+            if (++countOnes == 2) break;
+        }
+    }
+    for (int i = randomZ.size(); i < n; ++i) {
+        randomZ.push_back(0);
+    }
+    vector<vector<int>> result;
+    result.push_back(randomZ);
+    return result;
+}
+
+vector<vector<vector<int>>> getBlock(string &message, int k) {
     vector<vector<vector<int>>> resultBlocks;
     int count = 0;
     vector<vector<int>> block;
     vector<int> subBlock;
+    int countToAdd = 0;
+    if (message.size() % k != 0)
+        countToAdd = k - message.size() % k;
+    cout << "message before append: " << message << endl;
+    message.append(countToAdd, '0');
+    cout << "message after append: " << message << endl;
+
     for (char c : message) {
         if (c == '0') {
             subBlock.push_back(0);
@@ -267,28 +256,23 @@ vector<vector<vector<int>>> getBlock(const string &message, int k) {
     return resultBlocks;
 }
 
-
-int main(int argc, const char *argv[]) {
-
-/*    vector<vector<int>> matrix = gen_for_p(4);
-    for (const vector<int> &vector1 : matrix) {
-        for (int i : vector1) {
-            cout << i;
+void printMatrix(const vector<vector<int>> &matrix) {
+    for (const vector<int> &row : matrix) {
+        for (int item : row) {
+            cout << item << " ";
         }
         cout << endl;
     }
+}
 
-    vector<vector<int>> resultMatrix = matrix_mul(S, G);
 
-    for (const vector<int> &vector1 : resultMatrix) {
-        for (int i : vector1) {
-            cout << i;
-        }
-        cout << endl;
-    }*/
+int main(int argc, const char *argv[]) {
+
+    srand(time(NULL));
+
     string message;
 
-    cout << "Введите последовательность : " << endl;
+    cout << "Enter sequence : " << endl;
     cin >> message;
     vector<vector<vector<int>>> blocks = getBlock(message, 4);
     for (const auto &matrix : blocks) {
@@ -302,6 +286,73 @@ int main(int argc, const char *argv[]) {
         }
         cout << "} ";
     }
+    cout << endl;
+
+    vector<vector<int>> P = gen_for_p(12);
+    vector<vector<int>> SG = matrix_mul(S, G);
+    vector<vector<int>> SGP = matrix_mul(SG, P);
+
+    int count = 0;
+    for (const vector<vector<int>> &block : blocks) {
+        // шифрование
+        vector<vector<int>> randomZ = getRandomZ(2, 12);
+        cout << "random Z matrix :" << endl;
+        printMatrix(randomZ);
+        vector<vector<int>> c = matrix_mul(block, SGP);
+
+        for (int i = 0; i < c.size(); ++i) {
+            for (int j = 0; j < c[i].size(); ++j)
+                c[i][j] = (c[i][j] + randomZ[i][j]) % 2;
+        }
+
+        // вывод зашифрованного блока...
+
+        // дешифрование
+        vector<vector<int>> P_ = {
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+        P_ = inverseMatrix(P);
+
+        vector<vector<int>> c_ = matrix_mul(c, P_);
+
+        vector<vector<int>> c2_ = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+        for (int i = 0; i < c_.size(); i++) {
+            for (int j = 0; j < 12; j++) {
+                if (c_[i][j] == 0) {
+                    c2_[i][j] = c_[i][j] + randomZ[i][j];
+                } else {
+                    c2_[i][j] = c_[i][j];
+                }
+            }
+        }
+
+        vector<vector<int>> Gt = T2(G);
+        Gt = matrix_mul(c2_, Gt);
+        vector<vector<int>> S_ = {
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}};
+        S_ = inverseMatrix2(S);
+        // m=m`S^-1
+        vector<vector<int>> m_ = matrix_mul(Gt, S_);
+
+        cout << "result block number " << count++ << endl;
+        printMatrix(m_);
+
+    }
+
+
     // k = 4;n = 12;t = 2;
 /*
     vector<vector<int>> P = gen_for_p(12);
@@ -485,8 +536,8 @@ int main(int argc, const char *argv[]) {
         }
     } while (true);
 */
-
+/*
     getchar();
-    getchar();
+    getchar();*/
     return 0;
 }
